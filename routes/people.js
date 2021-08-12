@@ -26,11 +26,30 @@ router.get('/', async (req, res, next) => {
     //   - por exemplo, assim que uma pessoa é excluída, uma mensagem de
     //     sucesso pode ser mostrada
     // - error: idem para mensagem de erro
-    res.render('list-people', {
+    // negociação de conteúdo
+    res.format({
+      html: () => {
+        res.render('list-people', { 
+          people, 
+          success: req.flash('success') ,
+          error: req.flash('error')
+        })
+      },
+
+      json: () => {
+        res.json({ 
+          zombies, 
+          success: req.flash('success'), 
+          error: req.flash('error') 
+        })
+      }
+    }) 
+
+    /*res.render('list-people', {
       people,
       success: req.flash('success'),
       error: req.flash('error')
-    })
+    })*/
 
   } catch (error) {
     console.error(error)
@@ -88,7 +107,31 @@ router.get('/new/', (req, res) => {
 //   2. Redirecionar para a rota de listagem de pessoas
 //      - Em caso de sucesso do INSERT, colocar uma mensagem feliz
 //      - Em caso de erro do INSERT, colocar mensagem vermelhinha
+router.post('/new', async (req, res) => {
+  const newPerson = req.body.name
 
+  try {
+      const [insertResult] = await db.execute(
+      `INSERT INTO person (id, name)
+       VALUES (NULL, ?)`,
+      [newPerson.trim()]
+    )   
+
+    if (insertResult.affectedRows !== 1) {
+      req.flash('error', 'Não foi possível adicionar esse sobrevivente.')
+
+    } else {
+      req.flash('success', 'Nova Refeição de zumbi adicionada!')
+    }
+
+  } catch (error) {
+    req.flash('error', `Erro desconhecido. Descrição: ${error}`)
+
+  } finally {
+    res.redirect('/people')
+  }
+
+})
 
 /* DELETE uma pessoa */
 // Exercício 2: IMPLEMENTAR AQUI
@@ -97,6 +140,29 @@ router.get('/new/', (req, res) => {
 //   2. Redirecionar para a rota de listagem de pessoas
 //      - Em caso de sucesso do INSERT, colocar uma mensagem feliz
 //      - Em caso de erro do INSERT, colocar mensagem vermelhinha
+router.delete('/:id', async(req, res) => {
+  const personId = req.params.id
+  
+  try {
+    const [result] = await db.execute(
+    `DELETE FROM person 
+     WHERE id=?`,
+    [personId])
 
+    if (result.affectedRows !== 1) {
+      req.flash('error', 'Deu Ruim! Não foi excluir a comida de zumbi.')
+
+    } else {
+      req.flash('success', 'A comida de zumbi foi para o beleléu.')
+    }
+  
+  } catch (error) {
+    req.flash('error', `Erro desconhecido. Descrição: ${error}`)
+
+  } finally {
+    res.redirect('/people')
+  }
+
+})
 
 export default router
