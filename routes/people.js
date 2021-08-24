@@ -37,19 +37,9 @@ router.get('/', async (req, res, next) => {
       },
 
       json: () => {
-        res.json({ 
-          zombies, 
-          success: req.flash('success'), 
-          error: req.flash('error') 
-        })
+        res.status(200).json({ people })
       }
     }) 
-
-    /*res.render('list-people', {
-      people,
-      success: req.flash('success'),
-      error: req.flash('error')
-    })*/
 
   } catch (error) {
     console.error(error)
@@ -128,7 +118,7 @@ router.post('/new', async (req, res) => {
     req.flash('error', `Erro desconhecido. Descrição: ${error}`)
 
   } finally {
-    res.redirect('/people')
+    res.redirect('/people', 302)
   }
 
 })
@@ -160,7 +150,7 @@ router.delete('/:id', async(req, res) => {
     req.flash('error', `Erro desconhecido. Descrição: ${error}`)
 
   } finally {
-    res.redirect('/people')
+    res.redirect('/people', 302)
   }
 
 })
